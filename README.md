@@ -366,7 +366,6 @@ Install all with: `uv sync`
 
 ## Technical Highlights
 
-**For Potential Employers:**
 - **Latest OpenAI Responses API** (not chat.completions)
 - **Real satellite data processing** (not mock data)
 - **Conversational AI** with memory
