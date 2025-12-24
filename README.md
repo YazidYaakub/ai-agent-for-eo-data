@@ -9,6 +9,10 @@
 
 ---
 
+
+https://github.com/user-attachments/assets/c744403b-6d66-4112-8dc1-209fc886876c
+
+
 ## Project Overview
 
 **GeoQuery AI** is an intelligent conversational platform that allows users to analyze satellite imagery using natural language. Instead of complex GIS software or programming, users simply ask questions in plain English and can follow up with related queries:
