@@ -1,93 +1,89 @@
-# GeoQuery AI: Natural Language Interface for Satellite Imagery
+# LLM-Powered Satellite Imagery Analysis
 
-[![Python](https://img.shields.io/badge/Python-3.14+-blue)](https://www.python.org/)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--5.2-purple)](https://openai.com/)
+[![Python](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/)
+[![OpenAI](https://img.shields.io/badge/OpenAI_Agents_SDK-Latest-purple)](https://openai.com/)
+[![Planet](https://img.shields.io/badge/Planet_API-Integrated-green)](https://www.planet.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-> **AI-Powered Geospatial Analysis Platform**
-> Natural language conversational interface for satellite imagery analysis using AI agents and real satellite data.
+> A conversational AI system that integrates Large Language Models with Planet's satellite imagery APIs, enabling natural language interactions for searching, downloading, and analyzing Earth observation data.
 
 ---
 
+## Overview
 
+This project demonstrates the integration of **OpenAI's Agents SDK** with **Planet's Data and Orders APIs** to create an intelligent satellite imagery analysis platform. Users interact through natural language to:
 
-https://github.com/user-attachments/assets/9d8696f2-c887-4e3c-94f5-edfa24fd46b2
+- **Search** for PlanetScope satellite imagery by location and date
+- **Download** clipped imagery using Areas of Interest (AOI)
+- **Visualize** multi-band imagery with automatic RGB band mapping
+- **Analyze** vegetation indices (NDVI, NDRE) from 4-band and 8-band imagery
 
-
-
-
-## Project Overview
-
-**GeoQuery AI** is an intelligent conversational platform that allows users to analyze satellite imagery using natural language. Instead of complex GIS software or programming, users simply ask questions in plain English and can follow up with related queries:
-
-- Search for satellite imagery by location, coordinates, or time
-- Analyze vegetation health (NDVI) using real satellite imagery
-- Conversational memory - ask follow-up questions
-- Support for custom lat/lon coordinates
-- Get actionable insights with NDVI visualizations
-
-The system uses **OpenAI GPT-5.2 with Responses API** to automatically route queries to specialized geospatial analysis tools.
+The system automatically handles the complexity of satellite data formats, band configurations, and API interactions - users simply describe what they need in plain English.
 
 ---
 
 ## Key Features
 
-### AI-Powered Conversation
-- **OpenAI GPT-5.2 Responses API** for advanced agent orchestration
-- **Conversational memory** - context-aware follow-up questions
-- Automatic query routing to specialized tools
-- Multi-step reasoning and analysis workflows
+### Natural Language Interface
+- Conversational queries like *"Find imagery for this area from May 2025"*
+- Context-aware follow-up questions with session memory
+- Automatic parameter extraction from natural language
 
-### Real Satellite Data Processing
-- Direct integration with **Planet Data API**
-- Downloads and analyzes **real PlanetScope 3m imagery**
-- Real NDVI calculation from NIR and Red bands
-- Supports preset locations and custom coordinates
+### Planet API Integration
+- **Data API**: Search PlanetScope imagery with filters (cloud cover, date range, AOI)
+- **Orders API**: Create clipped orders with webhook notification support
+- **Asset Management**: Download full scenes or AOI-clipped imagery
 
-### Geospatial Analysis Tools
-- **NDVI Calculator**: Real vegetation health analysis (~100-500MB downloads)
-- **Planet Connector**: API search with custom coordinates support
-- **Semantic Search**: Natural language search with real Planet API results
-- **Change Detector**: (Future implementation)
+### Multi-Band Imagery Support
+Automatic band detection and RGB mapping based on PlanetScope product specifications:
 
-### Interactive Chat Interface
-- Streamlit web application with chat UI
-- Real-time conversational query processing
-- NDVI visualization (maps + histograms)
-- Clear chat to reset conversation memory
+| Product | Bands | True Color RGB |
+|---------|-------|----------------|
+| 8-band SuperDove (PSB.SD) | Coastal Blue, Blue, Green-I, Green, Yellow, Red, Red Edge, NIR | Bands 6, 4, 2 |
+| 4-band Dove-R (PS2.SD) | Blue, Green, Red, NIR | Bands 3, 2, 1 |
+| 3-band Visual | Red, Green, Blue | Bands 1, 2, 3 |
+
+### Vegetation Index Analysis
+- **NDVI** (Normalized Difference Vegetation Index)
+  - 8-band: (Band 8 - Band 6) / (Band 8 + Band 6)
+  - 4-band: (Band 4 - Band 3) / (Band 4 + Band 3)
+- **NDRE** (Normalized Difference Red Edge Index)
+  - 8-band only: (Band 8 - Band 7) / (Band 8 + Band 7)
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│      Streamlit Chat Interface                    │
-│      (Conversational Memory)                     │
-└──────────────────┬──────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────┐
-│       OpenAI Responses API Orchestrator          │
-│         (GPT-5.2 + Function Calling)             │
-│            store=True for context                │
-└──────────────────┬──────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────┐
-│           Specialized Tools Layer                │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
-│  │ Planet   │  │  Real    │  │ Semantic │     │
-│  │ Search   │  │  NDVI    │  │ Search   │     │
-│  │ (Real)   │  │  (Real)  │  │(Keyword) │     │
-│  └──────────┘  └──────────┘  └──────────┘     │
-└──────────────────┬──────────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────────┐
-│              Planet API / Data                   │
-│    (Downloads Real PlanetScope Imagery)          │
-└─────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                  Streamlit Chat Interface                    │
+│              (Real-time image display inline)                │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  OpenAI Agents SDK                           │
+│           (Unified Agent + Function Tools)                   │
+│              SQLiteSession for memory                        │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+        ┌──────────────────┼──────────────────┐
+        ▼                  ▼                  ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│   Search     │  │   Orders     │  │  Analysis    │
+│   Tools      │  │   Tools      │  │   Tools      │
+├──────────────┤  ├──────────────┤  ├──────────────┤
+│ planet_search│  │ create_order │  │ visualize_   │
+│ extract_aoi  │  │ check_status │  │   raster     │
+│              │  │ download     │  │ compute_ndvi │
+│              │  │              │  │ compute_ndre │
+└──────┬───────┘  └──────┬───────┘  └──────────────┘
+       │                 │
+       ▼                 ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Planet SDK for Python                     │
+│         Data API (Search) │ Orders API (Clip & Download)     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -95,48 +91,65 @@ The system uses **OpenAI GPT-5.2 with Responses API** to automatically route que
 ## Quick Start
 
 ### Prerequisites
-- Python 3.14 or higher
-- `uv` package manager ([Install uv](https://github.com/astral-sh/uv))
+- Python 3.12
+- [uv](https://docs.astral.sh/uv/) package manager
+- Planet account ([Sign up here](https://www.planet.com/explorer/))
 - OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
-- Planet API key ([Sign up here](https://account.planet.com/))
 
 ### Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/yourusername/ai-agent-for-eo-data.git
-cd ai-agent-for-eo-data
+# Clone the repository
+git clone https://github.com/yourusername/llm-satellite-imagery.git
+cd llm-satellite-imagery
 
-# 2. Configure API keys in .envrc
-export OPENAI_API_KEY=sk-...
-export PLANET_API_KEY=PLAK...
+# Install dependencies
+uv sync
 
-# 3. Run with uv (automatically installs dependencies)
+# Authenticate with Planet (saves credentials to ~/.planet.json)
+planet auth login
+
+# Set OpenAI API key
+export OPENAI_API_KEY="sk-..."
+
+# Run the application
 uv run streamlit run app.py
 ```
 
-The application will open in your browser at `http://localhost:8501`
-
 ---
 
-## Sample Usage
+## Usage Examples
 
-### Initial Query:
+### Search for Imagery
 ```
-"Show me padi fields in Sekinchan, Malaysia"
-```
+User: "Find satellite images for the uploaded AOI from May 24, 2025"
 
-### Follow-up Questions (Conversational):
-```
-"Calculate NDVI for the most recent scene"
-"What's the vegetation health status?"
-"Show me scenes from last month"
+Agent: Searches Planet Data API, returns available scenes with metadata
+       (cloud cover, acquisition time, satellite ID)
 ```
 
-### Custom Coordinates:
+### Download Clipped Imagery
 ```
-"Search for imagery at coordinates 3.6183798, 101.4583833"
-"Analyze vegetation at latitude 3.55576, longitude 101.10218"
+User: "Download the first 3 results clipped to my AOI"
+
+Agent: Creates an order via Orders API, clips imagery to AOI,
+       provides order ID for tracking
+```
+
+### Visualize Imagery
+```
+User: "Display this image as RGB"
+
+Agent: Auto-detects band count (8-band/4-band/3-band),
+       applies correct RGB mapping, displays inline
+```
+
+### Vegetation Analysis
+```
+User: "Run NDVI analysis on this image"
+
+Agent: Computes NDVI using appropriate bands,
+       generates colorized visualization with statistics
 ```
 
 ---
@@ -144,246 +157,171 @@ The application will open in your browser at `http://localhost:8501`
 ## Project Structure
 
 ```
-ai-agent-for-eo-data/
-├── app.py                      # Main Streamlit chat application
-├── agents/
-│   └── orchestrator.py         # OpenAI Responses API orchestration
-├── tools/
-│   ├── planet_connector.py     # Planet API integration (real data)
-│   ├── ndvi_calculator.py      # Real NDVI from satellite imagery
-│   ├── semantic_search.py      # Keyword-based search on real Planet data
-│   └── change_detector.py      # Future: Real change detection
-├── pyproject.toml              # Dependencies (uv format)
-├── uv.lock                     # Lock file
-├── .envrc                      # API keys (not in git)
-└── README.md                   # This file
-```
-
----
-
-## How It Works
-
-### 1. Conversational Query Processing
-```python
-# User asks initial question
-"Show me padi fields in Sekinchan"
-
-# Agent searches and returns results
-
-# User asks follow-up (agent remembers context!)
-"Calculate NDVI for the latest scene"
-```
-
-### 2. Agent Orchestration (Responses API)
-The OpenAI GPT-5.2 agent:
-1. Maintains conversation context with `store=True`
-2. Analyzes user query in context
-3. Determines required tools (search, NDVI, etc.)
-4. Calls functions with appropriate parameters
-5. Only uses real item IDs from search results
-6. Synthesizes results into natural language response
-
-### 3. Real Tool Execution
-```python
-# Search for imagery (real Planet API)
-results = planet_connector.search_imagery(
-    geometry={"type": "Point", "coordinates": [101.10218, 3.55576]},
-    start_date="2024-09-24",
-    end_date="2024-12-24",
-    cloud_cover_max=0.2
-)
-
-# Calculate real NDVI (downloads ~100-500MB imagery)
-ndvi_result = ndvi_calculator.calculate_ndvi_from_scene(
-    item_data=results[0]  # Real item from search
-)
-# This downloads actual satellite imagery and calculates NDVI
-```
-
-### 4. Semantic Search with Real Data
-```python
-# Natural language search with keyword matching
-results = semantic_search.search_by_description(
-    query="show me clear padi fields",
-    k=5
-)
-# Internally:
-# 1. Parses query keywords (padi → sekinchan location, clear → low cloud)
-# 2. Searches real Planet API with extracted parameters
-# 3. Ranks real results by cloud cover, recency, keyword matches
-# 4. Returns real Planet item IDs with similarity scores
+├── app.py                    # Streamlit chat interface
+├── geovision_agents.py       # Agent definition and function tools
+│   ├── unified_agent         # Main conversational agent
+│   ├── extract_polygon_geometry  # Extract geometry from GeoJSON
+│   ├── planet_search         # Search Planet Data API
+│   ├── download_single_asset # Download full scene assets
+│   ├── create_clip_order     # Create Orders API request
+│   ├── check_order_status    # Check order processing status
+│   ├── download_order        # Download completed orders
+│   ├── get_pending_orders    # List pending orders
+│   ├── visualize_raster      # RGB visualization with auto band detection
+│   ├── compute_ndvi          # NDVI calculation (4-band & 8-band)
+│   └── compute_ndre          # NDRE calculation (8-band only)
+├── order_manager.py          # Order tracking and webhook support
+├── WEBHOOK_USAGE.md          # Webhook setup documentation
+├── outputs/                  # Generated visualizations (PNG)
+├── uploads/                  # Uploaded GeoJSON and TIFF files
+├── downloads/                # Downloaded satellite imagery
+└── README.md
 ```
 
 ---
 
 ## Technical Implementation
 
-### OpenAI Responses API (GPT-5.2)
+### Agent Configuration (OpenAI Agents SDK)
 
 ```python
-response = client.responses.create(
-    model="gpt-5.2",
-    input=messages,  # Conversation history
+from agents import Agent, Runner, function_tool, SQLiteSession
+
+unified_agent = Agent(
+    name="unified_agent",
+    instructions="""...""",
+    model="gpt-5-mini",
     tools=[
-        {
-            "type": "function",
-            "name": "search_satellite_imagery",
-            "description": "Search for Planet satellite imagery...",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {"type": "string"},
-                    "latitude": {"type": "number"},
-                    "longitude": {"type": "number"},
-                    ...
-                }
-            }
-        }
-    ],
-    store=True  # Enable conversational memory
+        extract_polygon_geometry,
+        planet_search,
+        download_single_asset,
+        create_clip_order,
+        check_order_status,
+        download_order,
+        get_pending_orders,
+        visualize_raster,
+        compute_ndvi,
+        compute_ndre
+    ]
+)
+
+# Run with session memory
+session = SQLiteSession(session_id)
+result = await Runner.run(unified_agent, input=user_message, session=session)
+```
+
+### Planet SDK Integration
+
+```python
+from planet import Planet, data_filter
+
+pl = Planet()  # Uses credentials from `planet auth login`
+
+# Build search filter
+search_filter = data_filter.and_filter([
+    data_filter.permission_filter(),
+    data_filter.geometry_filter(aoi),
+    data_filter.date_range_filter("acquired", gte=start_dt, lte=end_dt),
+    data_filter.range_filter("cloud_cover", lte=max_cloud_cover)
+])
+
+# Search for imagery
+for item in pl.data.search(["PSScene"], search_filter=search_filter, limit=50):
+    # Process results...
+
+# Create clipped order
+order = pl.orders.create_order(order_request)
+```
+
+### Band-Aware Visualization
+
+```python
+with rasterio.open(file_path) as src:
+    num_bands = src.count
+
+    if num_bands == 8:
+        # SuperDove: Red=6, Green=4, Blue=2
+        rgb_bands = [6, 4, 2]
+    elif num_bands == 4:
+        # Dove-R: Red=3, Green=2, Blue=1
+        rgb_bands = [3, 2, 1]
+
+    data = src.read(rgb_bands)
+    # Normalize and display...
+```
+
+---
+
+## API Reference
+
+### Function Tools
+
+| Tool | Description | Input |
+|------|-------------|-------|
+| `extract_polygon_geometry` | Extract geometry from GeoJSON | File path |
+| `planet_search` | Search PlanetScope imagery | AOI, date range, cloud cover |
+| `download_single_asset` | Download full scene asset | Item ID, item type, asset type |
+| `create_clip_order` | Create clipped imagery order | Item IDs, AOI, asset type |
+| `check_order_status` | Check order processing status | Order ID |
+| `download_order` | Download completed order | Order ID |
+| `get_pending_orders` | List pending orders | None |
+| `visualize_raster` | Display imagery as RGB | File path |
+| `compute_ndvi` | Calculate NDVI | File path |
+| `compute_ndre` | Calculate NDRE (8-band only) | File path |
+
+---
+
+## Webhook Support
+
+The system supports webhook notifications for order completion:
+
+```python
+create_clip_order(
+    item_ids=["..."],
+    item_type="PSScene",
+    asset_type="ortho_analytic_8b_sr",
+    aoi_json=geometry,
+    webhook_url="https://your-server.com/webhook"  # Optional
 )
 ```
 
-### Real NDVI Calculation
-
-```python
-# Downloads real satellite imagery from Planet
-with rasterio.open(downloaded_imagery_path) as src:
-    # Read bands (downsampled to 2000x2000 for performance)
-    red = src.read(3).astype(float)  # Red band
-    nir = src.read(4).astype(float)  # NIR band
-
-    # Calculate NDVI: (NIR - Red) / (NIR + Red)
-    ndvi = (nir - red) / (nir + red)
-    ndvi = np.clip(ndvi, -1, 1)
-```
-
-### Planet API Integration
-
-```python
-# Supports both presets and custom coordinates
-geometry = {
-    "type": "Point",
-    "coordinates": [longitude, latitude]  # Custom coords
-}
-
-response = session.post(
-    "https://api.planet.com/data/v1/quick-search",
-    json={"item_types": ["PSScene"], "filter": search_filter}
-)
-```
-
----
-
-## Current Implementation Status
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| **Natural Language Search** | Complete | Real Planet API, preset + custom coords |
-| **NDVI Analysis** | Complete | Downloads real imagery, ~30-60s processing |
-| **Conversational Memory** | Complete | Full chat history with context |
-| **Custom Coordinates** | Complete | Lat/lon support for any location |
-| **NDVI Visualization** | Complete | Map + histogram visualization |
-| **Semantic Search** | Complete | Keyword-based search on real Planet data |
-| **Change Detection** | Planned | Future: Real multi-temporal analysis |
-
----
-
-## Use Cases
-
-### Agriculture Monitoring
-- Real vegetation health analysis for Sekinchan padi fields
-- Crop stress detection via NDVI
-- Seasonal monitoring with conversational queries
-
-### Environmental Analysis
-- Deforestation detection (via coordinate search)
-- Vegetation change over time
-- Land use monitoring
-
-### Portfolio Demonstration
-- AI agent orchestration with Responses API
-- Real satellite data processing
-- Production-ready conversational UI
-- Multi-tool orchestration
-
----
-
-## Implementation Notes
-
-### Real Data Processing
-- **NDVI downloads real imagery** (~100-500MB per scene)
-- **Images downsampled** to 2000x2000 for performance
-- **Processing time**: 30-60 seconds per NDVI calculation
-- **Uses Planet download quota** - be mindful of limits
-
-### Conversational Memory
-- Uses `store=True` in Responses API
-- Maintains full conversation context
-- Click "Clear Chat" to reset memory
-- Agent remembers previous search results and item IDs
-
-### Agent Guidance
-System prompt includes critical rules:
-- Only use item IDs from actual search results
-- Never invent or construct item IDs
-- Search first, then analyze
-- Inform users about download times
-
----
-
-## Testing
-
-```bash
-# Test with uv run
-uv run streamlit run app.py
-
-# Test individual tools
-uv run python tools/planet_connector.py
-uv run python tools/ndvi_calculator.py
-
-# Test agent orchestrator
-uv run python agents/orchestrator.py
-```
+See `WEBHOOK_USAGE.md` for detailed setup instructions.
 
 ---
 
 ## Dependencies
 
-Managed via `pyproject.toml` with `uv`:
+- **streamlit** - Chat interface
+- **openai-agents** - OpenAI Agents SDK
+- **planet** - Planet SDK for Python
+- **rasterio** - Geospatial raster I/O
+- **numpy** - Numerical operations
+- **matplotlib** - Visualization
+- **geojson** - GeoJSON parsing
 
-- **streamlit** - Web UI
-- **openai** - GPT-5.2 Responses API
-- **planet** - Satellite imagery API
-- **rasterio** - Geospatial raster processing
-- **geopandas** - Geospatial vector data
-- **numpy**, **matplotlib** - Data analysis & visualization
+---
 
-Install all with: `uv sync`
+## Limitations
+
+- Requires active Planet API subscription with download quota
+- NDRE analysis only available for 8-band SuperDove imagery
+- Order processing time varies (typically 5-15 minutes)
+- Large imagery files may take time to download
 
 ---
 
 ## Acknowledgments
 
-- **OpenAI** for GPT-5.2 and Responses API
-- **Planet Labs** for satellite imagery API access
-- **Open-source community** for geospatial tools
+- [Planet Labs](https://www.planet.com/) for satellite imagery API access
+- [OpenAI](https://openai.com/) for the Agents SDK
+- [Rasterio](https://rasterio.readthedocs.io/) for geospatial raster processing
 
 ---
 
-## Technical Highlights
+## License
 
-- **Latest OpenAI Responses API** (not chat.completions)
-- **Real satellite data processing** (not mock data)
-- **Conversational AI** with memory
-- **Production-ready architecture** with error handling
-- **Flexible coordinate support** (presets + custom lat/lon)
-- **Modular, scalable design** with clear separation of concerns
+MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-**Satellite Data:** This project uses Planet Labs API for satellite imagery. "Planet" and "PlanetScope" are trademarks of Planet Labs PBC. This project is not affiliated with or endorsed by Planet Labs.
-
----
-
-*Built to showcase AI + Geospatial capabilities with real satellite data*
+*This project demonstrates the integration of Large Language Models with Earth Observation APIs for natural language-driven satellite imagery analysis.*
