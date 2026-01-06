@@ -9,6 +9,10 @@
 
 ---
 
+
+https://github.com/user-attachments/assets/29ddc3e8-525b-4140-819b-c6725ca3fd5e
+
+
 ## Overview
 
 This project demonstrates the integration of **OpenAI's Agents SDK** with **Planet's Data and Orders APIs** to create an intelligent satellite imagery analysis platform. Users interact through natural language to:
